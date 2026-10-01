@@ -1,0 +1,55 @@
+@"
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Django
+db.sqlite3
+db.sqlite3-journal
+
+# Local database files
+my_django_db
+my_django_db.*
+
+# SQL backups
+*.sql
+
+# MySQL client / local build files
+mysqlclient-*.whl
+
+# Django collected static files
+staticfiles/
+
+# Logs
+*.log
+
+# IDEs
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Testing / coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Temporary files
+*.tmp
+*.temp
+"@ | Set-Content .gitignore

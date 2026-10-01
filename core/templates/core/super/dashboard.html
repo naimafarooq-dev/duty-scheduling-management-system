@@ -1,0 +1,156 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Superintendent Dashboard{% endblock %}
+
+{% block content %}
+<div class="flex min-h-screen font-[Segoe UI]">
+<!-- Sidebar -->
+<aside class="w-64 bg-gradient-to-b from-yellow-100 via-yellow-200 to-orange-100 text-gray-900 shadow-md flex flex-col justify-between font-[Segoe UI] rounded-tr-2xl rounded-br-2xl overflow-hidden border-r border-orange-200">
+
+  <!-- Header -->
+  <div class="p-5 bg-white/80 backdrop-blur-md border-b border-orange-300 shadow-sm">
+    <h1 class="text-center text-2xl font-bold text-orange-600 tracking-wide">Duty Roaster</h1>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="flex-1 px-4 py-6 space-y-2 text-[0.95rem] font-semibold">
+    <a href="{% url 'suprident_dashboard' %}" class="flex items-center gap-3 px-4 py-2 rounded-md bg-white hover:bg-orange-100 text-gray-800 hover:text-orange-700 transition shadow-sm hover:shadow-md">
+      📊 <span>Overview</span>
+    </a>
+    <a href="{% url 'assign_duty' %}" class="flex items-center gap-3 px-4 py-2 rounded-md bg-white hover:bg-orange-100 text-gray-800 hover:text-orange-700 transition shadow-sm hover:shadow-md">
+      🗓️ <span>Duty Assigning</span>
+    </a>
+    <a href="{% url 'generate_report' %}" class="flex items-center gap-3 px-4 py-2 rounded-md bg-white hover:bg-orange-100 text-gray-800 hover:text-orange-700 transition shadow-sm hover:shadow-md">
+      📑 <span>Reports</span>
+    </a>
+  </nav>
+
+  <!-- Logout -->
+  <div class="px-4 py-5 border-t border-orange-300 bg-white/80 backdrop-blur-md">
+    <a href="{% url 'logout' %}" class="flex items-center gap-3 px-4 py-2 rounded-md text-red-600 hover:bg-red-100 hover:text-red-700 transition font-semibold shadow-sm hover:shadow-md">
+      🚪 <span>Logout</span>
+    </a>
+  </div>
+
+</aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 p-8">
+    <h1 id="dashboard-title" class="text-2xl font-bold mb-6">
+      Superintendent Dashboard — <span id="current-year"></span>
+    </h1>
+
+    <!-- Full Year Calendar -->
+    <div class="bg-white rounded-lg shadow p-4 mb-8">
+      <h2 id="calendar-heading" class="text-lg font-semibold mb-4">
+        Full Year Duty Calendar (<span id="calendar-year"></span>)
+      </h2>
+      <div id="calendar" class="mx-auto" style="max-width: 900px;"></div>
+    </div>
+
+    <!-- Current Year Duties (table) -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-lg font-semibold mb-4">All Duties (<span id="table-year"></span>)</h2>
+      <table class="w-full text-sm border-collapse border border-gray-200">
+        <thead>
+          <tr class="bg-gray-100 border-b border-gray-300">
+            <th class="p-2 text-left">Employee</th>
+            <th class="p-2 text-left">Date</th>
+            <th class="p-2 text-left">Event</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for duty in duties %}
+          <tr class="border-b hover:bg-gray-50">
+            <td class="p-2">{{ duty.employee_name }}</td>
+            <td class="p-2">{{ duty.duty_date }}</td>
+            <td class="p-2">{{ duty.event_name }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="3" class="p-4 text-center text-gray-500">No duties assigned this year.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<!-- Pass calendar data as JSON -->
+{{ calendar_events|json_script:"calendar-data" }}
+{% endblock %}
+
+{% block scripts %}
+<!-- FullCalendar -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const calendarEl = document.getElementById('calendar');
+  const events = JSON.parse(document.getElementById('calendar-data').textContent);
+
+  const dashboardTitleYear = document.getElementById('current-year');
+  const calendarHeadingYear = document.getElementById('calendar-year');
+  const tableYear = document.getElementById('table-year');
+
+  function updateYear(year) {
+    dashboardTitleYear.textContent = year;
+    calendarHeadingYear.textContent = year;
+    tableYear.textContent = year;
+  }
+
+  const today = new Date();
+  updateYear(today.getFullYear());
+
+  const calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: 'multiMonthYear',
+    height: 600,
+    nowIndicator: true,
+    headerToolbar: {
+      left: 'prev,next today',
+      center: 'title',
+      right: 'multiMonthYear,dayGridMonth'
+    },
+    events: events,
+    eventDisplay: 'block',
+
+    eventClick: function(info) {
+      const name = info.event.title;
+      const hr = info.event.extendedProps.hr_number;
+      const designation = info.event.extendedProps.designation;
+
+      Swal.fire({
+        title: 'Duty Assigned',
+        html: `
+          <strong>Name:</strong> ${name}<br>
+          <strong>HR Number:</strong> ${hr}<br>
+          <strong>Designation:</strong> ${designation}
+        `,
+        icon: 'info',
+        confirmButtonText: 'Close'
+      });
+    },
+
+    datesSet: function(viewInfo) {
+      const currentYear = new Date(viewInfo.start).getFullYear();
+      updateYear(currentYear);
+    }
+  });
+
+  calendar.render();
+});
+</script>
+
+<style>
+/* Highlight today's date */
+.fc-day-today {
+  background-color: #f0fdf4 !important;
+  border: 2px solid #22c55e !important;
+  border-radius: 4px;
+}
+</style>
+{% endblock %}

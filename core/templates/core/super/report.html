@@ -1,0 +1,586 @@
+{% extends 'core/base.html' %}
+{% block title %}Duty Report{% endblock %}
+{% block content %}
+<div class="flex min-h-screen font-[Segoe UI]">
+
+    <!-- =========================================================
+         Sidebar
+    ========================================================== -->
+
+    <aside
+        class="w-64 bg-gradient-to-b from-yellow-100 via-yellow-200 to-orange-100
+               text-gray-900 shadow-md flex flex-col justify-between
+               rounded-tr-2xl rounded-br-2xl overflow-hidden
+               border-r border-orange-200"
+    >
+
+        <!-- Header -->
+
+        <div
+            class="p-5 bg-white/80 backdrop-blur-md
+                   border-b border-orange-300 shadow-sm"
+        >
+
+            <h1
+                class="text-center text-2xl font-bold
+                       text-orange-600 tracking-wide"
+            >
+                Duty Roaster
+            </h1>
+
+        </div>
+        <!-- Navigation -->
+
+        <nav
+            class="flex-1 px-4 py-6 space-y-2
+                   text-[0.95rem] font-semibold"
+        >
+            <a
+                href="{% url 'suprident_dashboard' %}"
+                class="flex items-center gap-3 px-4 py-2 rounded-md
+                       bg-white hover:bg-orange-100
+                       text-gray-800 hover:text-orange-700
+                       transition shadow-sm hover:shadow-md"
+            >
+                📊
+                <span>Overview</span>
+            </a>
+
+            <a
+                href="{% url 'assign_duty' %}"
+                class="flex items-center gap-3 px-4 py-2 rounded-md
+                       bg-white hover:bg-orange-100
+                       text-gray-800 hover:text-orange-700
+                       transition shadow-sm hover:shadow-md"
+            >
+                🗓️
+                <span>Duty Assigning</span>
+            </a>
+
+            <a
+                href="{% url 'generate_report' %}"
+                class="flex items-center gap-3 px-4 py-2 rounded-md
+                       bg-white hover:bg-orange-100
+                       text-gray-800 hover:text-orange-700
+                       transition shadow-sm hover:shadow-md"
+            >
+                📑
+                <span>Reports</span>
+            </a>
+
+        </nav>
+
+        <!-- Logout -->
+
+        <div
+            class="px-4 py-5 border-t border-orange-300
+                   bg-white/80 backdrop-blur-md"
+        >
+            <a
+                href="{% url 'logout' %}"
+                class="flex items-center gap-3 px-4 py-2 rounded-md
+                       text-red-600 hover:bg-red-100
+                       hover:text-red-700 transition
+                       font-semibold shadow-sm hover:shadow-md"
+            >
+                🚪
+                <span>Logout</span>
+            </a>
+
+        </div>
+
+    </aside>
+
+    <!-- =========================================================
+         Main Content
+    ========================================================== -->
+
+    <main class="flex-1 p-6">
+        <div class="max-w-7xl mx-auto">
+
+            <!-- Heading -->
+
+            <h1 class="text-3xl font-bold text-gray-800 mb-6">
+                Duty Report
+            </h1>
+
+            <!-- =================================================
+                 Month Selection
+            ================================================== -->
+
+            <div
+                class="bg-white rounded-lg shadow-md p-6 mb-6"
+            >
+
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">
+                    Select Report Month
+                </h2>
+
+                <form
+                    method="get"
+                    action="{% url 'generate_report' %}"
+                    class="flex flex-wrap items-end gap-4"
+                >
+                    <div>
+
+                        <label
+                            for="month"
+                            class="block text-sm font-medium
+                                   text-gray-700 mb-2"
+                        >
+                            Month
+                        </label>
+
+                        <select
+                            id="month"
+                            name="month"
+                            required
+                            class="w-64 p-2 border border-gray-300
+                                   rounded-md focus:ring-2
+                                   focus:ring-orange-500
+                                   focus:border-orange-500"
+                        >
+                            <option value="">
+                                Select Month
+                            </option>
+
+                            {% for value, label in month_options %}
+
+                                <option
+                                    value="{{ value }}"
+                                    {% if selected_month == value %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    {{ label }}
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="px-5 py-2 bg-orange-600
+                               text-white rounded-md
+                               hover:bg-orange-700 transition"
+                    >
+                        View Report
+                    </button>
+
+                </form>
+
+            </div>
+
+            <!-- =================================================
+                 Selected Month
+            ================================================== -->
+
+            {% if selected_month %}
+
+                <!-- =================================================
+                     Selected Month Information
+                ================================================== -->
+
+                <div
+                    class="bg-orange-50 border border-orange-200
+                           rounded-lg p-4 mb-6"
+                >
+
+                    <p class="text-gray-700">
+
+                        Showing duty report for:
+
+                        <strong class="text-orange-700">
+                            {{ selected_month_label }}
+                        </strong>
+
+                    </p>
+
+                </div>
+
+                <!-- =================================================
+                     Download Buttons
+                ================================================== -->
+
+                <div
+                    class="bg-white rounded-lg shadow-md
+                           p-6 mb-6"
+                >
+
+                    <h2
+                        class="text-lg font-semibold
+                               text-gray-800 mb-4"
+                    >
+                        Download Report
+                    </h2>
+
+                    <div class="flex flex-wrap gap-3">
+
+                        <a
+                            href="{% url 'download_report_pdf' %}?month={{ selected_month }}"
+                            class="inline-flex items-center gap-2
+                                   bg-red-600 text-white
+                                   px-5 py-2 rounded-md
+                                   hover:bg-red-700 transition"
+                        >
+                            📄 Download PDF
+                        </a>
+
+                        <a
+                            href="{% url 'download_report_word' %}?month={{ selected_month }}"
+                            class="inline-flex items-center gap-2
+                                   bg-blue-600 text-white
+                                   px-5 py-2 rounded-md
+                                   hover:bg-blue-700 transition"
+                        >
+                            📝 Download Word
+                        </a>
+
+                    </div>
+
+                </div>
+
+                <!-- =================================================
+                     Duty Table
+                ================================================== -->
+
+                <div
+                    class="overflow-x-auto bg-white
+                           rounded-lg shadow-md"
+                >
+
+                    <div class="p-5 border-b">
+
+                        <h2
+                            class="text-xl font-semibold
+                                   text-gray-800"
+                        >
+                            Duty Details
+                        </h2>
+
+                    </div>
+
+                    <table
+                        class="min-w-full border border-gray-300"
+                    >
+
+                        <thead>
+
+                            <tr class="bg-gray-200">
+
+                                <th
+                                    class="border px-4 py-3 text-left"
+                                >
+                                    #
+                                </th>
+
+                                <th
+                                    class="border px-4 py-3 text-left"
+                                >
+                                    Employee Name
+                                </th>
+
+                                <th
+                                    class="border px-4 py-3 text-left"
+                                >
+                                    HR Number
+                                </th>
+
+                                <th
+                                    class="border px-4 py-3 text-left"
+                                >
+                                    Designation
+                                </th>
+
+                                <th
+                                    class="border px-4 py-3 text-left"
+                                >
+                                    Duty Date
+                                </th>
+
+                                <th
+                                    class="border px-4 py-3 text-left"
+                                >
+                                    Event Name
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            {% for duty in duties %}
+
+                                <tr
+                                    class="hover:bg-gray-50"
+                                >
+
+                                    <td
+                                        class="border px-4 py-3"
+                                    >
+                                        {{ forloop.counter }}
+                                    </td>
+
+                                    <td
+                                        class="border px-4 py-3"
+                                    >
+                                        {{ duty.employee.name }}
+                                    </td>
+
+                                    <td
+                                        class="border px-4 py-3"
+                                    >
+                                        {{ duty.employee.hr_number }}
+                                    </td>
+
+                                    <td
+                                        class="border px-4 py-3"
+                                    >
+                                        {{ duty.employee.designation }}
+                                    </td>
+
+                                    <td
+                                        class="border px-4 py-3"
+                                    >
+                                        {{ duty.duty_date|date:"d M Y" }}
+                                    </td>
+
+                                    <td
+                                        class="border px-4 py-3"
+                                    >
+
+                                        {% if duty.event %}
+
+                                            {{ duty.event.name }}
+
+                                        {% else %}
+
+                                            <span class="text-gray-500">
+                                                —
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+                                </tr>
+
+                            {% empty %}
+
+                                <tr>
+
+                                    <td
+                                        colspan="6"
+                                        class="border px-4 py-6
+                                               text-center
+                                               text-gray-500"
+                                    >
+                                        No duties assigned for
+                                        {{ selected_month_label }}.
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <!-- =================================================
+                     NFD List
+                ================================================== -->
+
+                <div
+                    class="overflow-x-auto bg-white
+                           rounded-lg shadow-md mt-6"
+                >
+
+                    <div class="p-5 border-b">
+
+                        <h2
+                            class="text-xl font-semibold
+                                   text-gray-800"
+                        >
+                            NFD List
+                        </h2>
+
+                        <p class="text-sm text-gray-500 mt-1">
+                            Not For Duty employees for
+                            {{ selected_month_label }}
+                        </p>
+
+                    </div>
+
+                    <table
+                        class="min-w-full border border-gray-300"
+                    >
+
+                        <thead>
+
+                            <tr class="bg-gray-200">
+
+                                <th
+                                    class="border px-4 py-3 text-left"
+                                >
+                                    #
+                                </th>
+
+                                <th
+                                    class="border px-4 py-3 text-left"
+                                >
+                                    Employee Name
+                                </th>
+
+                                <th
+                                    class="border px-4 py-3 text-left"
+                                >
+                                    HR Number
+                                </th>
+
+                                <th
+                                    class="border px-4 py-3 text-left"
+                                >
+                                    Designation
+                                </th>
+
+                                <th
+                                    class="border px-4 py-3 text-left"
+                                >
+                                    NFD Date
+                                </th>
+
+                                <th
+                                    class="border px-4 py-3 text-left"
+                                >
+                                    Duty Type
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            {% for nfd in nfds %}
+
+                                <tr
+                                    class="hover:bg-gray-50"
+                                >
+
+                                    <td
+                                        class="border px-4 py-3"
+                                    >
+                                        {{ forloop.counter }}
+                                    </td>
+
+                                    <td
+                                        class="border px-4 py-3"
+                                    >
+                                        {{ nfd.employee.name }}
+                                    </td>
+
+                                    <td
+                                        class="border px-4 py-3"
+                                    >
+                                        {{ nfd.employee.hr_number }}
+                                    </td>
+
+                                    <td
+                                        class="border px-4 py-3"
+                                    >
+                                        {{ nfd.employee.designation }}
+                                    </td>
+
+                                    <td
+                                        class="border px-4 py-3"
+                                    >
+
+                                        {% if nfd.duty_date %}
+
+                                            {{ nfd.duty_date|date:"d M Y" }}
+
+                                        {% else %}
+
+                                            —
+
+                                        {% endif %}
+
+                                    </td>
+
+                                    <td
+                                        class="border px-4 py-3"
+                                    >
+                                        {{ nfd.duty_type|default:"—" }}
+                                    </td>
+
+                                </tr>
+
+                            {% empty %}
+
+                                <tr>
+
+                                    <td
+                                        colspan="6"
+                                        class="border px-4 py-6
+                                               text-center
+                                               text-gray-500"
+                                    >
+                                        No NFD employees for
+                                        {{ selected_month_label }}.
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            {% else %}
+
+                <!-- =================================================
+                     No Month Selected
+                ================================================== -->
+
+                <div
+                    class="bg-white rounded-lg shadow-md
+                           p-10 text-center"
+                >
+
+                    <div class="text-5xl mb-4">
+                        📑
+                    </div>
+
+                    <h2
+                        class="text-xl font-semibold
+                               text-gray-800 mb-2"
+                    >
+                        Select a Month
+                    </h2>
+
+                    <p class="text-gray-500">
+                        Select a month above to view and
+                        download its duty report.
+                    </p>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </main>
+
+</div>
+
+{% endblock %}

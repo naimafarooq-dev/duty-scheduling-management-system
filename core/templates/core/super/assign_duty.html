@@ -1,0 +1,1656 @@
+{% extends 'core/base.html' %}
+
+{% load static %}
+
+{% block title %}Assign Duty{% endblock %}
+
+{% block content %}
+
+<div class="flex min-h-screen font-[Segoe UI]">
+
+    <!-- =========================================================
+         Sidebar
+    ========================================================== -->
+
+    <aside
+        class="w-64 bg-gradient-to-b from-orange-50 via-amber-100 to-yellow-100
+               text-gray-900 shadow-lg flex flex-col justify-between
+               rounded-tr-2xl rounded-br-2xl overflow-hidden border-r border-amber-200"
+    >
+
+        <!-- Header -->
+
+        <div class="p-5 bg-white/90 backdrop-blur-sm border-b border-orange-200 shadow">
+
+            <h1 class="text-center text-2xl font-bold text-[#f97316] tracking-wide">
+                Duty Roaster
+            </h1>
+
+        </div>
+
+
+        <!-- Navigation -->
+
+        <nav class="flex-1 px-4 py-6 space-y-2 text-[0.95rem] font-semibold">
+
+            <a
+                href="{% url 'suprident_dashboard' %}"
+                class="flex items-center gap-3 px-4 py-2 rounded-md bg-white
+                       hover:bg-amber-100 text-gray-800 hover:text-[#d65b0f]
+                       transition shadow-sm hover:shadow-md"
+            >
+                📊
+                <span>Overview</span>
+            </a>
+
+
+            <a
+                href="{% url 'assign_duty' %}"
+                class="flex items-center gap-3 px-4 py-2 rounded-md bg-white
+                       hover:bg-amber-100 text-gray-800 hover:text-[#d65b0f]
+                       transition shadow-sm hover:shadow-md"
+            >
+                🗓️
+                <span>Duty Assigning</span>
+            </a>
+
+
+            <a
+                href="{% url 'generate_report' %}"
+                class="flex items-center gap-3 px-4 py-2 rounded-md bg-white
+                       hover:bg-amber-100 text-gray-800 hover:text-[#d65b0f]
+                       transition shadow-sm hover:shadow-md"
+            >
+                📑
+                <span>Reports</span>
+            </a>
+
+        </nav>
+
+
+        <!-- Logout -->
+
+        <div class="px-4 py-5 border-t border-orange-200 bg-white/90 backdrop-blur-sm">
+
+            <a
+                href="{% url 'logout' %}"
+                class="flex items-center gap-3 px-4 py-2 rounded-md
+                       text-red-600 hover:bg-red-100 hover:text-red-700
+                       transition font-semibold shadow-sm hover:shadow-md"
+            >
+                🚪
+                <span>Logout</span>
+            </a>
+
+        </div>
+
+    </aside>
+
+
+    <!-- =========================================================
+         Main Content
+    ========================================================== -->
+
+    <main class="flex-1 p-6">
+
+        <div class="max-w-7xl mx-auto">
+
+            <!-- Page Heading -->
+
+            <h1 class="text-3xl font-bold text-gray-800 mb-4">
+                Assign Duty
+            </h1>
+
+
+            <!-- =================================================
+                 Month Selector
+            ================================================== -->
+
+            <div class="mb-6">
+
+                <form
+                    id="monthSelector"
+                    method="get"
+                    class="flex flex-wrap items-end gap-3"
+                >
+
+                    <div>
+
+                        <label
+                            for="month"
+                            class="block mb-2 text-sm font-medium text-gray-700"
+                        >
+                            Select Month:
+                        </label>
+
+
+                        <select
+                            id="month"
+                            name="month"
+                            class="w-60 p-2 border border-gray-300 rounded-md
+                                   focus:ring-2 focus:ring-indigo-500
+                                   focus:border-indigo-500"
+                        >
+
+                            {% for value, label in month_options %}
+
+                                <option
+                                    value="{{ value }}"
+                                    {% if selected_month == value %}selected{% endif %}
+                                >
+                                    {{ label }}
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <button
+                        type="submit"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded
+                               hover:bg-indigo-700 transition"
+                    >
+                        Generate
+                    </button>
+
+                </form>
+
+            </div>
+
+
+            <!-- =================================================
+                 Django Messages
+            ================================================== -->
+
+            {% if messages %}
+
+                <div class="mb-4 space-y-2">
+
+                    {% for message in messages %}
+
+                        <div
+                            class="p-3 rounded text-white
+                            {% if message.tags == 'success' %}
+                                bg-green-500
+                            {% elif message.tags == 'error' %}
+                                bg-red-500
+                            {% else %}
+                                bg-blue-500
+                            {% endif %}"
+                        >
+                            {{ message }}
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            {% endif %}
+
+
+            <!-- =================================================
+                 Assign Duty Form
+            ================================================== -->
+
+            <div class="bg-white p-6 rounded shadow mb-8">
+
+                <form
+                    id="assignDutyForm"
+                    method="post"
+                    class="grid grid-cols-1 gap-4 md:grid-cols-2"
+                >
+
+                    {% csrf_token %}
+
+
+                    <!-- Employee -->
+
+                    <div>
+
+                        <label
+                            for="employee"
+                            class="block text-sm font-medium text-gray-700"
+                        >
+                            Employee
+                        </label>
+
+
+                        <select
+                            name="employee"
+                            id="employee"
+                            required
+                            class="w-full p-2 border rounded
+                                   focus:ring-2 focus:ring-green-500
+                                   focus:border-green-500"
+                        >
+
+                            <option value="" disabled selected>
+                                Select Employee
+                            </option>
+
+
+                            {% for emp in employees %}
+
+                                <option value="{{ emp.id }}">
+                                    {{ emp.name }} - {{ emp.designation }}
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- Duty Date -->
+
+                    <div>
+
+                        <label
+                            for="date"
+                            class="block text-sm font-medium text-gray-700"
+                        >
+                            Duty Date
+                        </label>
+
+
+                        <input
+                            type="date"
+                            name="date"
+                            id="date"
+                            required
+                            class="w-full p-2 border rounded
+                                   focus:ring-2 focus:ring-green-500
+                                   focus:border-green-500"
+                        >
+
+                    </div>
+
+
+                    <!-- Selected Month -->
+
+                    <input
+                        type="hidden"
+                        name="selected_month"
+                        id="hidden_selected_month"
+                        value="{{ selected_month }}"
+                    >
+
+                </form>
+
+
+                <!-- Form Actions -->
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+
+                    <button
+                        type="submit"
+                        form="assignDutyForm"
+                        class="w-full h-12 bg-green-600 text-white rounded
+                               hover:bg-green-700 transition"
+                    >
+                        Assign
+                    </button>
+
+
+                    <button
+                        type="button"
+                        id="generateNFDBtn"
+                        class="w-full h-12 bg-blue-600 text-white rounded
+                               hover:bg-blue-700 transition"
+                    >
+                        Generate NFD for Next Month
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 Assigned Duties
+            ================================================== -->
+
+            <div class="bg-white p-6 rounded shadow">
+
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">
+                    Assigned Duties ({{ selected_month_label }})
+                </h2>
+
+
+                <div class="overflow-x-auto">
+
+                    <table class="min-w-full table-auto border">
+
+                        <thead>
+
+                            <tr class="bg-gray-100 text-left">
+
+                                <th class="px-4 py-2 border">
+                                    Date
+                                </th>
+
+                                <th class="px-4 py-2 border">
+                                    Employee
+                                </th>
+
+                                <th class="px-4 py-2 border">
+                                    Event
+                                </th>
+
+                                <th class="px-4 py-2 border">
+                                    Actions
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            {% for duty in duties %}
+
+                                <tr
+                                    class="hover:bg-gray-50"
+                                    data-id="{{ duty.id }}"
+                                >
+
+                                    <!-- Date -->
+
+                                    <td class="px-4 py-2 border duty-date">
+                                        {{ duty.duty_date|date:"Y-m-d" }}
+                                    </td>
+
+
+                                    <!-- Employee -->
+
+                                    <td
+                                        class="px-4 py-2 border duty-employee"
+                                        data-emp-id="{{ duty.employee.id }}"
+                                    >
+                                        {{ duty.employee.name }} -
+                                        {{ duty.employee.designation }}
+                                    </td>
+
+
+                                    <!-- Event -->
+
+                                    <td class="px-4 py-2 border duty-event">
+
+                                        {% if duty.event %}
+
+                                            {{ duty.event.name }}
+
+                                        {% else %}
+
+                                            <span class="text-gray-500 italic">
+                                                No Event
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <!-- Actions -->
+
+                                    <td class="px-4 py-2 border duty-actions">
+
+                                        <button
+                                            type="button"
+                                            class="text-blue-600 hover:underline edit-btn"
+                                            data-id="{{ duty.id }}"
+                                        >
+                                            Edit
+                                        </button>
+
+
+                                        <button
+                                            type="button"
+                                            class="text-red-600 hover:underline
+                                                   delete-btn ml-2"
+                                            data-id="{{ duty.id }}"
+                                        >
+                                            Delete
+                                        </button>
+
+                                    </td>
+
+                                </tr>
+
+
+                            {% empty %}
+
+                                <tr>
+
+                                    <td
+                                        colspan="4"
+                                        class="text-center text-gray-500 p-4"
+                                    >
+                                        No duties assigned for this month.
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 NFD Queue
+            ================================================== -->
+
+            <div class="mt-8 bg-white p-6 rounded shadow">
+
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">
+                    NFD Queue (Generated from {{ selected_month_label }})
+                </h2>
+
+
+                <div class="overflow-x-auto">
+
+                    <table class="min-w-full table-auto border">
+
+                        <thead>
+
+                            <tr class="bg-gray-100 text-left">
+
+                                <th class="px-4 py-2 border">
+                                    Employee
+                                </th>
+
+                                <th class="px-4 py-2 border">
+                                    Duty Type
+                                </th>
+
+                                <th class="px-4 py-2 border">
+                                    Assigned Month
+                                </th>
+
+                                <th class="px-4 py-2 border">
+                                    Duty Date
+                                </th>
+
+                                <th class="px-4 py-2 border">
+                                    Action
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            {% for nfd in nfds %}
+
+                                <tr class="hover:bg-gray-50">
+
+                                    <td class="px-4 py-2 border">
+                                        {{ nfd.employee.name }}
+                                        ({{ nfd.employee.designation }})
+                                    </td>
+
+
+                                    <td class="px-4 py-2 border">
+                                        {{ nfd.duty_type }}
+                                    </td>
+
+
+                                    <td class="px-4 py-2 border">
+                                        {{ nfd.assigned_month|date:"F Y" }}
+                                    </td>
+
+
+                                    <td class="px-4 py-2 border">
+                                        {{ nfd.duty_date|date:"Y-m-d" }}
+                                    </td>
+
+
+                                    <td class="px-4 py-2 border text-center">
+
+                                        <button
+                                            type="button"
+                                            class="text-red-700 hover:underline
+                                                   delete-nfd-btn"
+                                            data-id="{{ nfd.id }}"
+                                        >
+                                            Delete
+                                        </button>
+
+                                    </td>
+
+                                </tr>
+
+
+                            {% empty %}
+
+                                <tr>
+
+                                    <td
+                                        colspan="5"
+                                        class="text-center text-gray-500 p-4"
+                                    >
+                                        No NFDs available for selected month.
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+</div>
+
+{% endblock %}
+
+
+{% block scripts %}
+
+<!-- =========================================================
+     SweetAlert2
+========================================================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    // =========================================================
+    // DOM Elements
+    // =========================================================
+
+    const csrfToken =
+        "{{ csrf_token }}";
+
+    const dateInput =
+        document.getElementById("date");
+
+    const employeeInput =
+        document.getElementById("employee");
+
+    const assignDutyForm =
+        document.getElementById("assignDutyForm");
+
+    const monthSelector =
+        document.getElementById("monthSelector");
+
+    const monthDropdown =
+        document.getElementById("month");
+
+    const hiddenSelectedMonth =
+        document.getElementById("hidden_selected_month");
+
+    const generateNFDBtn =
+        document.getElementById("generateNFDBtn");
+
+
+    // =========================================================
+    // Django URLs
+    // =========================================================
+
+    const saveDutyUrl =
+        "{% url 'save_duty' %}";
+
+    const generateNFDUrl =
+        "{% url 'generate_nfd' %}";
+
+    const editDutyUrlTemplate =
+        "{% url 'edit_duty_ajax' 0 %}";
+
+    const deleteDutyUrlTemplate =
+        "{% url 'delete_duty_ajax' 0 %}";
+
+    const deleteNFDUrlTemplate =
+        "{% url 'delete_nfd' 0 %}";
+
+
+    // =========================================================
+    // Helper Functions
+    // =========================================================
+
+    function showError(message) {
+
+        Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: message
+        });
+
+    }
+
+
+    function showInfo(message) {
+
+        Swal.fire({
+            icon: "info",
+            title: "Information",
+            text: message
+        });
+
+    }
+
+
+    function showSuccess(
+        title,
+        message,
+        reload = true
+    ) {
+
+        Swal.fire({
+            icon: "success",
+            title: title,
+            text: message
+        }).then(() => {
+
+            if (reload) {
+                window.location.reload();
+            }
+
+        });
+
+    }
+
+
+    function buildUrl(
+        template,
+        id
+    ) {
+
+        return template.replace(
+            "/0/",
+            `/${id}/`
+        );
+
+    }
+
+
+    // =========================================================
+    // Weekend Detection
+    // =========================================================
+
+    function isWeekend(dateValue) {
+
+        if (!dateValue) {
+            return false;
+        }
+
+
+        const selectedDate =
+            new Date(`${dateValue}T00:00:00`);
+
+        const day =
+            selectedDate.getDay();
+
+
+        return (
+            day === 0 ||
+            day === 6
+        );
+
+    }
+
+
+    function showWeekendStatus(dateValue) {
+
+        if (!dateValue) {
+            return;
+        }
+
+
+        const weekend =
+            isWeekend(dateValue);
+
+
+        Swal.fire({
+
+            icon: weekend
+                ? "warning"
+                : "info",
+
+            title: weekend
+                ? "Weekend Detected"
+                : "Weekday",
+
+            text:
+                `The selected date (${dateValue}) is a ${
+                    weekend
+                        ? "weekend"
+                        : "weekday"
+                }.`,
+
+            timer: 2000,
+
+            showConfirmButton: false
+
+        });
+
+    }
+
+
+    if (dateInput) {
+
+        dateInput.addEventListener(
+            "change",
+            function () {
+
+                if (!this.value) {
+                    return;
+                }
+
+
+                showWeekendStatus(
+                    this.value
+                );
+
+            }
+        );
+
+    }
+
+
+    // =========================================================
+    // Month Synchronization
+    // =========================================================
+
+    if (
+        monthDropdown &&
+        hiddenSelectedMonth
+    ) {
+
+        monthDropdown.addEventListener(
+            "change",
+            function () {
+
+                hiddenSelectedMonth.value =
+                    this.value;
+
+            }
+        );
+
+    }
+
+
+    // =========================================================
+    // Edit Duty
+    // =========================================================
+
+    document
+        .querySelectorAll(".edit-btn")
+        .forEach(function (button) {
+
+            button.addEventListener(
+                "click",
+                function () {
+
+                    const dutyId =
+                        this.dataset.id;
+
+
+                    const row =
+                        document.querySelector(
+                            `tr[data-id="${dutyId}"]`
+                        );
+
+
+                    if (!row) {
+                        return;
+                    }
+
+
+                    // -------------------------------------------------
+                    // Original Date
+                    // -------------------------------------------------
+
+                    const originalDate =
+                        row
+                            .querySelector(".duty-date")
+                            .textContent
+                            .trim();
+
+
+                    // -------------------------------------------------
+                    // Original Employee
+                    // -------------------------------------------------
+
+                    const originalEmployee =
+                        row
+                            .querySelector(".duty-employee")
+                            .dataset.empId;
+
+
+                    // -------------------------------------------------
+                    // Date Input
+                    // -------------------------------------------------
+
+                    const dateCell =
+                        row.querySelector(
+                            ".duty-date"
+                        );
+
+
+                    dateCell.innerHTML = `
+
+                        <input
+                            type="date"
+                            value="${originalDate}"
+                            class="edit-date p-1 border rounded w-full"
+                        >
+
+                    `;
+
+
+                    // -------------------------------------------------
+                    // Employee Select
+                    // -------------------------------------------------
+
+                    const employeeCell =
+                        row.querySelector(
+                            ".duty-employee"
+                        );
+
+
+                    const employeeSelect =
+                        document.createElement(
+                            "select"
+                        );
+
+
+                    employeeSelect.className =
+                        "edit-employee p-1 border rounded w-full";
+
+
+                    employeeSelect.innerHTML = `
+
+                        <option value="" disabled>
+                            Select Employee
+                        </option>
+
+                        {% for emp in employees %}
+
+                            <option value="{{ emp.id }}">
+                                {{ emp.name }} - {{ emp.designation }}
+                            </option>
+
+                        {% endfor %}
+
+                    `;
+
+
+                    employeeSelect.value =
+                        originalEmployee;
+
+
+                    employeeCell.innerHTML = "";
+
+                    employeeCell.appendChild(
+                        employeeSelect
+                    );
+
+
+                    // -------------------------------------------------
+                    // Event Display
+                    // -------------------------------------------------
+
+                    const eventCell =
+                        row.querySelector(
+                            ".duty-event"
+                        );
+
+
+                    eventCell.innerHTML = `
+
+                        <span class="text-gray-500 italic">
+                            Automatically detected from date
+                        </span>
+
+                    `;
+
+
+                    // -------------------------------------------------
+                    // Action Buttons
+                    // -------------------------------------------------
+
+                    const actionsCell =
+                        row.querySelector(
+                            ".duty-actions"
+                        );
+
+
+                    actionsCell.innerHTML = `
+
+                        <button
+                            type="button"
+                            class="text-green-600 hover:underline
+                                   save-edit-btn"
+                            data-id="${dutyId}"
+                        >
+                            Save
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="text-gray-600 hover:underline
+                                   cancel-edit-btn ml-2"
+                            data-id="${dutyId}"
+                        >
+                            Cancel
+                        </button>
+
+                    `;
+
+
+                    // -------------------------------------------------
+                    // Save Edit
+                    // -------------------------------------------------
+
+                    const saveButton =
+                        row.querySelector(
+                            ".save-edit-btn"
+                        );
+
+
+                    saveButton.addEventListener(
+                        "click",
+                        async function () {
+
+                            const newDate =
+                                row
+                                    .querySelector(
+                                        ".edit-date"
+                                    )
+                                    .value;
+
+
+                            const newEmployee =
+                                row
+                                    .querySelector(
+                                        ".edit-employee"
+                                    )
+                                    .value;
+
+
+                            if (
+                                !newDate ||
+                                !newEmployee
+                            ) {
+
+                                showError(
+                                    "Please select both a date and an employee."
+                                );
+
+                                return;
+                            }
+
+
+                            const url =
+                                buildUrl(
+                                    editDutyUrlTemplate,
+                                    dutyId
+                                );
+
+
+                            try {
+
+                                const response =
+                                    await fetch(
+                                        url,
+                                        {
+                                            method:
+                                                "POST",
+
+                                            headers: {
+
+                                                "X-CSRFToken":
+                                                    csrfToken,
+
+                                                "Content-Type":
+                                                    "application/json"
+
+                                            },
+
+                                            body:
+                                                JSON.stringify({
+
+                                                    date:
+                                                        newDate,
+
+                                                    employee:
+                                                        newEmployee
+
+                                                })
+
+                                        }
+                                    );
+
+
+                                if (!response.ok) {
+
+                                    throw new Error(
+                                        "Update failed."
+                                    );
+
+                                }
+
+
+                                const data =
+                                    await response.json();
+
+
+                                if (
+                                    data.status ===
+                                    "success"
+                                ) {
+
+                                    showSuccess(
+                                        "Updated!",
+                                        data.message
+                                    );
+
+                                }
+
+                                else {
+
+                                    showError(
+                                        data.message ||
+                                        "Unable to update duty."
+                                    );
+
+                                }
+
+                            }
+
+                            catch (error) {
+
+                                showError(
+                                    "Something went wrong while updating the duty."
+                                );
+
+                            }
+
+                        }
+                    );
+
+
+                    // -------------------------------------------------
+                    // Cancel Edit
+                    // -------------------------------------------------
+
+                    const cancelButton =
+                        row.querySelector(
+                            ".cancel-edit-btn"
+                        );
+
+
+                    cancelButton.addEventListener(
+                        "click",
+                        function () {
+
+                            window.location.reload();
+
+                        }
+                    );
+
+                }
+            );
+
+        });
+
+
+    // =========================================================
+    // Delete Duty
+    // =========================================================
+
+    document
+        .querySelectorAll(".delete-btn")
+        .forEach(function (button) {
+
+            button.addEventListener(
+                "click",
+                async function () {
+
+                    const dutyId =
+                        this.dataset.id;
+
+
+                    const result =
+                        await Swal.fire({
+
+                            title:
+                                "Are you sure?",
+
+                            text:
+                                "This will delete the duty.",
+
+                            icon:
+                                "warning",
+
+                            showCancelButton:
+                                true,
+
+                            confirmButtonColor:
+                                "#d33",
+
+                            cancelButtonColor:
+                                "#3085d6",
+
+                            confirmButtonText:
+                                "Yes, delete it!"
+
+                        });
+
+
+                    if (!result.isConfirmed) {
+                        return;
+                    }
+
+
+                    const url =
+                        buildUrl(
+                            deleteDutyUrlTemplate,
+                            dutyId
+                        );
+
+
+                    try {
+
+                        const response =
+                            await fetch(
+                                url,
+                                {
+                                    method:
+                                        "POST",
+
+                                    headers: {
+
+                                        "X-CSRFToken":
+                                            csrfToken
+
+                                    }
+                                }
+                            );
+
+
+                        if (!response.ok) {
+
+                            throw new Error(
+                                "Delete failed."
+                            );
+
+                        }
+
+
+                        const row =
+                            button.closest(
+                                "tr"
+                            );
+
+
+                        if (row) {
+                            row.remove();
+                        }
+
+
+                        await Swal.fire(
+                            "Deleted!",
+                            "Duty has been removed.",
+                            "success"
+                        );
+
+                    }
+
+                    catch (error) {
+
+                        showError(
+                            "Failed to delete duty."
+                        );
+
+                    }
+
+                }
+            );
+
+        });
+
+
+    // =========================================================
+    // Generate NFD
+    // =========================================================
+
+    if (generateNFDBtn) {
+
+        generateNFDBtn.addEventListener(
+            "click",
+            async function () {
+
+                const selectedMonth =
+                    monthDropdown.value;
+
+
+                if (!selectedMonth) {
+
+                    showError(
+                        "Please select a month first."
+                    );
+
+                    return;
+                }
+
+
+                try {
+
+                    const response =
+                        await fetch(
+                            generateNFDUrl,
+                            {
+
+                                method:
+                                    "POST",
+
+                                headers: {
+
+                                    "X-CSRFToken":
+                                        csrfToken,
+
+                                    "Content-Type":
+                                        "application/x-www-form-urlencoded"
+
+                                },
+
+                                body:
+                                    `month=${encodeURIComponent(
+                                        selectedMonth
+                                    )}`
+
+                            }
+                        );
+
+
+                    if (!response.ok) {
+
+                        throw new Error(
+                            "NFD generation failed."
+                        );
+
+                    }
+
+
+                    const data =
+                        await response.json();
+
+
+                    if (
+                        data.status ===
+                        "success"
+                    ) {
+
+                        showSuccess(
+                            "Generated!",
+                            data.message
+                        );
+
+                    }
+
+                    else {
+
+                        showInfo(
+                            data.message ||
+                            "No NFD was generated."
+                        );
+
+                    }
+
+                }
+
+                catch (error) {
+
+                    showError(
+                        "Failed to generate NFD."
+                    );
+
+                }
+
+            }
+        );
+
+    }
+
+
+    // =========================================================
+    // Delete NFD
+    // =========================================================
+
+    document
+        .querySelectorAll(".delete-nfd-btn")
+        .forEach(function (button) {
+
+            button.addEventListener(
+                "click",
+                async function () {
+
+                    const nfdId =
+                        this.dataset.id;
+
+
+                    const result =
+                        await Swal.fire({
+
+                            title:
+                                "Are you sure?",
+
+                            text:
+                                "This will remove the NFD entry.",
+
+                            icon:
+                                "warning",
+
+                            showCancelButton:
+                                true,
+
+                            confirmButtonColor:
+                                "#d33",
+
+                            cancelButtonColor:
+                                "#3085d6",
+
+                            confirmButtonText:
+                                "Yes, delete it!"
+
+                        });
+
+
+                    if (!result.isConfirmed) {
+                        return;
+                    }
+
+
+                    const url =
+                        buildUrl(
+                            deleteNFDUrlTemplate,
+                            nfdId
+                        );
+
+
+                    try {
+
+                        const response =
+                            await fetch(
+                                url,
+                                {
+
+                                    method:
+                                        "POST",
+
+                                    headers: {
+
+                                        "X-CSRFToken":
+                                            csrfToken
+
+                                    }
+
+                                }
+                            );
+
+
+                        if (!response.ok) {
+
+                            throw new Error(
+                                "Delete failed."
+                            );
+
+                        }
+
+
+                        await Swal.fire(
+                            "Deleted!",
+                            "NFD entry deleted.",
+                            "success"
+                        );
+
+
+                        window.location.reload();
+
+                    }
+
+                    catch (error) {
+
+                        showError(
+                            "Failed to delete NFD entry."
+                        );
+
+                    }
+
+                }
+            );
+
+        });
+
+
+    // =========================================================
+    // Assign Duty
+    // =========================================================
+
+    if (assignDutyForm) {
+
+        assignDutyForm.addEventListener(
+            "submit",
+            async function (event) {
+
+                event.preventDefault();
+
+
+                const formData =
+                    new FormData(
+                        assignDutyForm
+                    );
+
+
+                const selectedMonth =
+                    monthDropdown.value;
+
+
+                const selectedDate =
+                    dateInput.value;
+
+
+                const selectedEmployee =
+                    employeeInput.value;
+
+
+                // -------------------------------------------------
+                // Validation
+                // -------------------------------------------------
+
+                if (!selectedEmployee) {
+
+                    showError(
+                        "Please select an employee."
+                    );
+
+                    return;
+                }
+
+
+                if (!selectedDate) {
+
+                    showError(
+                        "Please select a duty date."
+                    );
+
+                    return;
+                }
+
+
+                if (!selectedMonth) {
+
+                    showError(
+                        "Please select a month."
+                    );
+
+                    return;
+                }
+
+
+                // -------------------------------------------------
+                // Set Selected Month
+                // -------------------------------------------------
+
+                formData.set(
+                    "selected_month",
+                    selectedMonth
+                );
+
+
+                // -------------------------------------------------
+                // Submit
+                // -------------------------------------------------
+
+                try {
+
+                    const response =
+                        await fetch(
+                            saveDutyUrl,
+                            {
+
+                                method:
+                                    "POST",
+
+                                headers: {
+
+                                    "X-CSRFToken":
+                                        formData.get(
+                                            "csrfmiddlewaretoken"
+                                        )
+
+                                },
+
+                                body:
+                                    formData
+
+                            }
+                        );
+
+
+                    if (!response.ok) {
+
+                        throw new Error(
+                            "Duty assignment failed."
+                        );
+
+                    }
+
+
+                    const data =
+                        await response.json();
+
+
+                    if (
+                        data.status ===
+                        "success"
+                    ) {
+
+                        showSuccess(
+                            "Assigned!",
+                            data.message
+                        );
+
+                    }
+
+                    else {
+
+                        showError(
+                            data.message ||
+                            "Unable to assign duty."
+                        );
+
+                    }
+
+                }
+
+                catch (error) {
+
+                    showError(
+                        "Something went wrong while assigning the duty."
+                    );
+
+                }
+
+            }
+        );
+
+    }
+
+
+    // =========================================================
+    // Month Selection
+    // =========================================================
+
+    if (
+        monthSelector &&
+        monthDropdown
+    ) {
+
+        monthSelector.addEventListener(
+            "submit",
+            function (event) {
+
+                event.preventDefault();
+
+
+                const selectedMonth =
+                    monthDropdown.value;
+
+
+                if (!selectedMonth) {
+
+                    showError(
+                        "Please select a month."
+                    );
+
+                    return;
+                }
+
+
+                const targetUrl =
+                    `?month=${encodeURIComponent(
+                        selectedMonth
+                    )}&auto_assign=1`;
+
+
+                window.location.href =
+                    targetUrl;
+
+            }
+        );
+
+    }
+
+});
+
+</script>
+
+{% endblock %}

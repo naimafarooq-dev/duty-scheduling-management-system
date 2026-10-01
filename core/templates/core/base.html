@@ -1,0 +1,22 @@
+<!-- core/templates/core/base.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Duty Roaster{% block title %}{% endblock %}</title>
+
+  <!-- Tailwind (via CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- FullCalendar CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css">
+
+  {% block head %}{% endblock %}
+</head>
+<body style="background: linear-gradient(to bottom, #ffffff 0%, #fff6e5 30%, #fcd34d 70%, #eea61f 100%); font-family: 'Segoe UI', sans-serif;">
+  {% block content %}{% endblock %}
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>
