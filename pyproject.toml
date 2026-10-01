@@ -10,13 +10,14 @@ readme = "README.md"
 requires-python = ">=3.13,<4"
 dependencies = [
     "django (>=5.2.4,<6.0.0)",
-    "mysqlclient @ file:///C:/Users/Naima%20Farooq/Documents/Duty%20Scheduling%20Management%20System/mysqlclient-2.2.7-cp313-cp313-win_amd64.whl",
+    "mysqlclient (>=2.2.7,<3.0.0)",
     "python-dateutil (>=2.9.0.post0,<3.0.0)",
     "reportlab (==5.0.1)",
     "python-docx (==1.2.0)"
 ]
 
 [tool.poetry]
+package-mode = false
 
 [tool.poetry.group.dev.dependencies]
 black = "^25.1.0"
