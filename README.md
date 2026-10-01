@@ -784,7 +784,7 @@ https://duty-scheduling-management-system-h6x4iu6kl.vercel.app/login/
 
 ### Django Admin
 
-(https://duty-scheduling-management-system-h6x4iu6kl.vercel.app/admin/login/?next=%2Fadmin%2F)
+https://duty-scheduling-management-system-h6x4iu6kl.vercel.app/admin/login/?next=%2Fadmin%2F
 
 > The web application and Django Admin use the same production MySQL database hosted on Railway.
 
