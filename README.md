@@ -8,20 +8,6 @@ The application is deployed on **Vercel** and connected to a production **MySQL 
 
 ---
 
-## Live Application
-
-### Web Application
-
-https://duty-scheduling-management-system.vercel.app
-
-### Django Admin
-
-https://duty-scheduling-management-system.vercel.app/admin/
-
-> The web application and Django Admin use the same production MySQL database hosted on Railway.
-
----
-
 # Features
 
 ## User Authentication
@@ -794,7 +780,7 @@ The project demonstrates how a manual scheduling workflow can be transformed int
 
 ### Web Application
 
- https://duty-scheduling-management-system-h6x4iu6kl.vercel.app
+https://duty-scheduling-management-system-h6x4iu6kl.vercel.app/login/
 
 ### Django Admin
 
